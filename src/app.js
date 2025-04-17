@@ -18,7 +18,7 @@ const io = new Server(server, {
 });
 //============================================
 app.use(cors());
-app.use(express.json({ limit: "10k" })); // stream recived 10kb of chunk
+app.use(express.json({ limit: "10mb" })); // stream recived 10kb of chunk
 //============================================
 //Routes
 

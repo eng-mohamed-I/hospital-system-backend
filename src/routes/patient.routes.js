@@ -24,7 +24,7 @@ patientRoutes.post("/reset-password/:token", resetPassword);
 patientRoutes.post("/update-password/:token", updatePassword);
 patientRoutes.get("/", getAllPatients);
 patientRoutes.delete("/:id", deletePatient);
-patientRoutes.post("/update-atient/:token", updatePatient);
+patientRoutes.post("/update-patient/:token", updatePatient);
 patientRoutes.put("/:id", updateAdminPatient);
 patientRoutes.get("/:id", getPatientById);
 patientRoutes.post("/updateDonation/:token", updateDonation);
