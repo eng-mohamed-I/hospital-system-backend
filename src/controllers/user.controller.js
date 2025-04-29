@@ -37,6 +37,7 @@ const register = async (req, res, next) => {
   //   }
   const user = new userModel(req.body);
   const saveUser = await user.save();
+  
   res.status(201).json({ message: "done", saveUser });
 };
 

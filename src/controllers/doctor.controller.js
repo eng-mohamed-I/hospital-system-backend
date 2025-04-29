@@ -110,7 +110,7 @@ const createDoctor = async (req, res) => {
     // Upload the image to Cloudinary
     const customId = nanoid();
     const uploadResult = await cloudinary.uploader.upload(file.path, {
-      folder: `Hospital/Doctor/${customId}`, // Folder structure in Cloudinary
+      folder: `Hospital/Doctors/${customId}`, // Folder structure in Cloudinary
     });
 
     // Extract the Cloudinary URL and public ID

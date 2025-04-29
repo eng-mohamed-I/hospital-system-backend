@@ -1,6 +1,6 @@
 import { Schema, model } from "mongoose";
 import pkg from "bcrypt";
-
+//=======================================
 const userSchema = new Schema(
   {
     name: {
@@ -23,16 +23,11 @@ const userSchema = new Schema(
     },
     phoneNumber: {
       type: String,
+      default: null,
     },
-    address: [
-      {
-        type: String,
-        required: true,
-      },
-    ],
     profilePicture: {
-      secure_url: String,
-      public_id: String,
+      secure_url: { type: String, default: null },
+      public_id: { type: String, default: null },
     },
     gender: {
       type: String,
@@ -49,5 +44,5 @@ const userSchema = new Schema(
 userSchema.pre("save", function () {
   this.password = pkg.hashSync(this.password, +process.env.SALT_ROUNDS);
 });
-
+//=======================================
 export const userModel = model("user", userSchema);

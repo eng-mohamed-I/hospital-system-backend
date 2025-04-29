@@ -78,7 +78,7 @@ const doctorSchema = new Schema(
     },
     gender: {
       type: String,
-      enum: ["male", "female", "other"],
+      enum: ["male", "female"],
       required: true,
     },
     dateOfBirth: {
@@ -93,15 +93,6 @@ const doctorSchema = new Schema(
     history: {
       type: String,
       default: "",
-    },
-    role: {
-      type: String,
-      enum: ["doctor"],
-      default: "doctor",
-    },
-    statistics: {
-      type: Map,
-      of: Number,
     },
     role: {
       type: String,

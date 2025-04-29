@@ -1,6 +1,6 @@
-import app from "./server.js";
+import server from "./server.js";
 //============================
 
-app.listen(process.env.PORT, () => {
+server.listen(process.env.PORT, () => {
   console.log("Server connected successfully`");
 });
