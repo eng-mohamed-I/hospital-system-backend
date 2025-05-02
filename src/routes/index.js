@@ -7,6 +7,7 @@ import newsRoutes from "./news.routes.js";
 import appointmentRoutes from "./appointment.routes.js";
 import doctorRoutes from "./doctor.routes.js";
 import reportRoutes from "./report.routes.js";
+import specialiesRoutes from "./specialies.routes.js";
 //======================================================
 const routes = Router();
 
@@ -19,5 +20,6 @@ routes.use("/news", newsRoutes);
 routes.use("/departments", departmentRoutes);
 routes.use("/appointments", appointmentRoutes);
 routes.use("/reports", reportRoutes);
+routes.use("/specialties", specialiesRoutes);
 //======================================================
 export default routes;

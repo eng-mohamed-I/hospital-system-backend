@@ -1,6 +1,5 @@
 import { model, Schema } from "mongoose";
 //=======================================
-
 const doctorSchema = new Schema(
   {
     name: {
@@ -99,23 +98,8 @@ const doctorSchema = new Schema(
       enum: ["doctor"],
       default: "doctor",
     },
-    appointments: [
-      {
-        appointID: {
-          type: Schema.Types.ObjectId,
-          ref: "Appointment",
-        },
-        patientID: {
-          type: Schema.Types.ObjectId,
-          ref: "Patient",
-        },
-        date: Date,
-        time: String,
-        report: String,
-      },
-    ],
   },
   { timestamps: true, versionKey: false }
 );
-
+//============================================
 export const doctorModel = model("Doctor", doctorSchema);

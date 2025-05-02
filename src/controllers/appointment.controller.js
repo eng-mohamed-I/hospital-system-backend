@@ -5,6 +5,8 @@ import { doctorModel } from "../models/doctor.model.js";
 import { patientModel } from "../models/patient.model.js";
 import { sendSMS } from "../services/sendSMS.js";
 import jwt from "jsonwebtoken";
+import { reportModel } from "../models/report.model.js";
+import mongoose from "mongoose";
 //==========================================================
 const stripe = new Stripe(
   "sk_test_51Q0Stx1BDc3FGejoe8y5l8EKXCy9zylTH6kWjLmWqVUKUsgvbgLi1ZCbotQefcrRxkRlMoAVMfDyGVtAHSUounpY00DVLBjyO3"
@@ -119,6 +121,17 @@ const bookAppointment = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
+};
+
+const getAppointmentReports = async (req, res) => {
+  const { id } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ message: "invalid id" });
+  }
+
+  const reports = await reportModel.find({ appointmentId: id });
+
+  res.status(200).json({ message: "get reports successfully", reports });
 };
 
 const updateAppointmentStatus = async (req, res) => {
@@ -269,6 +282,7 @@ const getDoctorAppointment = async (req, res) => {
 //==========================================================
 export {
   getAppointmentDetails,
+  getAppointmentReports,
   bookAppointment,
   updateAppointmentStatus,
   getAppointmentsByPatientEmail,

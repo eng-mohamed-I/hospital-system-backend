@@ -1,33 +1,44 @@
 import mongoose from "mongoose";
 import { reportModel } from "../models/report.model.js";
-import { patientModel } from "../models/patient.model.js";
-import { doctorModel } from "../models/doctor.model.js";
-import { departmentModel } from "../models/department.model.js";
 // import { io } from "../../../app.js";
 //======================================================
 
 let addReport = async (req, res) => {
   try {
-    const { patientName, doctorName, department, ...otherData } = req.body;
+    const {
+      appointmentId,
+      patientName,
+      doctorName,
+      department,
+      doctorComment,
+      treatmentPrescription,
+      patientAddress,
+      patientPhoneNumber,
+      followUpRecommendations,
+    } = req.body;
 
-    // Fetch the corresponding documents
-    const patient = await patientModel.findOne({ name: patientName });
-    const doctor = await doctorModel.findOne({ name: doctorName });
-    const dept = await departmentModel.findOne({ name: department });
-
-    // Check if patient, doctor, or department exist
-    if (!patient || !doctor || !dept) {
-      return res
-        .status(400)
-        .json({ message: "Invalid patient, doctor, or department name." });
-    }
+    // // Fetch the corresponding documents
+    // const patient = await patientModel.findOne({ name: patientName });
+    // const doctor = await doctorModel.findOne({ name: doctorName });
+    // const dept = await departmentModel.findOne({ name: department });
+    // // Check if patient, doctor, or department exist
+    // if (!patient || !doctor || !dept) {
+    //   return res
+    //     .status(400)
+    //     .json({ message: "Invalid patient, doctor, or department name." });
+    // }
 
     // Create a new report instance with ObjectId references
     let report = new reportModel({
-      patientName: patientName, // Use the fetched ObjectId
-      doctorName: doctorName, // Use the fetched ObjectId
-      department: department, // Use the fetched ObjectId
-      ...otherData, // Include other data from the request
+      appointmentId,
+      patientName,
+      doctorName,
+      department,
+      doctorComment,
+      treatmentPrescription,
+      patientAddress,
+      patientPhoneNumber,
+      followUpRecommendations,
     });
 
     // Save the report
@@ -76,18 +87,6 @@ let getOneReport = async (req, res) => {
     .json({ message: "report found successfully", report: report });
 };
 
-let getAppointmentReports = async (req, res) => {
-  let { id } = req.params;
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).json({ message: "invalid id" });
-  }
-
-  let reports = await reportModel
-    .find({ appointmentId: id })
-    .populate("appointmentId");
-
-  res.status(200).json({ message: "get reports successfully", reports });
-};
 
 //======================================================
-export { addReport, getReports, getOneReport, getAppointmentReports };
+export { addReport, getReports, getOneReport };

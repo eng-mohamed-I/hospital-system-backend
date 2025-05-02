@@ -48,6 +48,7 @@ const getDoctorById = async (req, res) => {
       .populate("appointments.appointID")
       .populate("appointments.patientID")
       .populate("department");
+
     if (!doctor) {
       return res.status(404).json({ message: "Doctor not found" });
     }

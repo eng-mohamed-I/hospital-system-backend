@@ -5,6 +5,7 @@ import {
   cancelAppointment,
   getAllAppointments,
   getAppointmentDetails,
+  getAppointmentReports,
   getAppointmentsByPatientEmail,
   getDoctorAppointment,
   updateAppointmentStatus,
@@ -21,5 +22,6 @@ appointmentRoutes.get("/patient/:email", getAppointmentsByPatientEmail);
 appointmentRoutes.delete("/cancel/:appointmentID", cancelAppointment);
 appointmentRoutes.get("/", getAllAppointments);
 appointmentRoutes.get("/doctor/:token", getDoctorAppointment);
+appointmentRoutes.get("/reports/:id", getAppointmentReports);
 //=====================================================
 export default appointmentRoutes;
