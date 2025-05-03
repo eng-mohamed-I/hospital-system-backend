@@ -2,7 +2,6 @@ import { doctorModel } from "../models/doctor.model.js";
 import { customAlphabet } from "nanoid";
 import cloudinary from "../utilities/cloudinaryConfig.js";
 import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt";
 import { departmentModel } from "../models/department.model.js";
 import mongoose from "mongoose";
 //======================================================
@@ -68,7 +67,7 @@ const createDoctor = async (req, res) => {
       userName,
       nationalID,
       department,
-      availableDates, // Ensure this is an array
+      availableDates,
       email,
       phone,
       price,
@@ -80,45 +79,53 @@ const createDoctor = async (req, res) => {
     } = req.body;
 
     const { file } = req;
+    const customId = nanoid();
+    const uploadResult = await cloudinary.uploader.upload(file.path, {
+      folder: `Hospital/Doctors/${customId}`,
+    });
 
-    // Check if the file is provided
+    console.log(uploadResult);
+
+    if (department) {
+      if (!mongoose.Types.ObjectId.isValid(department)) {
+        return res.status(400).json({ message: "Invalid department Id." });
+      }
+
+      const foundDepartment = await departmentModel.findById(department);
+      if (!foundDepartment) {
+        return res.status(400).json({ message: "Department not found." });
+      }
+    }
+
     if (!file) {
       return res.status(400).json({ message: "No file uploaded." });
     }
 
-    // Validate availableDates format
     let parsedAvailableDates;
-    try {
-      // Ensure availableDates is parsed as an array if it comes as a string
-      parsedAvailableDates =
-        typeof availableDates === "string"
-          ? JSON.parse(availableDates)
-          : availableDates;
 
-      // Optionally validate the structure of each date object
-      parsedAvailableDates.forEach((date) => {
-        if (!date.date || !date.fromTime || !date.toTime) {
-          throw new Error("Invalid date format");
-        }
-      });
-    } catch (error) {
-      return res.status(400).json({
-        message: "Invalid availableDates format",
-        error: error.message,
-      });
+    if (availableDates) {
+      try {
+        parsedAvailableDates =
+          typeof availableDates === "string"
+            ? JSON.parse(availableDates)
+            : availableDates;
+
+        parsedAvailableDates.forEach((date) => {
+          if (!date.date || !date.fromTime || !date.toTime) {
+            throw new Error("Invalid date format");
+          }
+        });
+      } catch (error) {
+        return res.status(400).json({
+          message: "Invalid availableDates format",
+          error: error.message,
+        });
+      }
     }
 
-    // Upload the image to Cloudinary
-    const customId = nanoid();
-    const uploadResult = await cloudinary.uploader.upload(file.path, {
-      folder: `Hospital/Doctors/${customId}`, // Folder structure in Cloudinary
-    });
-
-    // Extract the Cloudinary URL and public ID
     const { secure_url, public_id } = uploadResult;
 
-    // Create a new doctor instance with the uploaded image URL
-    const newDoctor = new doctorModel({
+    const doctor = new doctorModel({
       name,
       specialization,
       userName,
@@ -134,22 +141,16 @@ const createDoctor = async (req, res) => {
       experience,
       history,
       Image: {
-        secure_url, // Save Cloudinary image URL
-        public_id, // Save Cloudinary image public ID for future reference
+        secure_url,
+        public_id,
       },
     });
 
-    // Save the doctor to the database
-    const addedDoctor = await newDoctor.save();
+    await doctor.save();
 
-    // Generate a token
-    const token = jwt.sign(
-      { email: email, id: addedDoctor._id }, // Payload
-      "Doctor", // Secret key
-      { expiresIn: "1h" } // Token expiration time
-    );
-
-    // Respond with success message and doctor details
+    res
+      .status(200)
+      .json({ message: "Doctor created successfully.", data: doctor });
   } catch (error) {
     // Handle any unexpected errors
     console.error(error);

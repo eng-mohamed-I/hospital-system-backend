@@ -10,8 +10,8 @@ import {
 //======================================================
 const departmentRoutes = Router();
 
-departmentRoutes.post("/create", isAdmin, createDepartment);
 departmentRoutes.get("/", getAllDepartments);
+departmentRoutes.post("/", createDepartment);
 departmentRoutes.get("/:id", getDepartmentById);
 departmentRoutes.put("/:id", isAdmin, updateDepartment);
 departmentRoutes.delete("/:id", isAdmin, deleteDepartment);

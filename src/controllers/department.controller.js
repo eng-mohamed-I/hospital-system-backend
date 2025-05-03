@@ -1,23 +1,21 @@
 import mongoose from "mongoose";
 import { departmentModel } from "../models/department.model.js";
 //==============================================================
-
-// Create a new department
 const createDepartment = async (req, res) => {
   try {
-    const { name, description, doctors } = req.body;
+    const { name, description } = req.body;
 
     let foundedDepartment = await departmentModel.findOne({ name: name });
     if (foundedDepartment) {
-      return res.status(400).json({ message: "Department already exist" });
+      return res.status(400).json({ message: "Department already exist." });
     }
 
-    const department = new departmentModel({ name, description, doctors });
+    const department = new departmentModel({ name, description });
     await department.save();
 
     res.status(201).json({
-      message: "Department added successfully",
-      department,
+      message: "Department created successfully.",
+      data: department,
     });
   } catch (error) {
     console.error("Error creating department:", error);
