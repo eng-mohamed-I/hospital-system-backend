@@ -5,15 +5,12 @@ import {
   createDoctor,
   deleteDoctor,
   getAllDoctors,
-  getDepartmentDoctors,
   getDoctorById,
   getDoctorsWithAppointments,
   login,
   updateDoctor,
   updateDoctorAvailableDate,
 } from "../controllers/doctor.controller.js";
-import { isAdmin } from "../middlewares/authorization.js";
-import { validateDoctor } from "../middlewares/doctorValidators.js";
 //======================================================
 const doctorRoutes = Router();
 
@@ -32,7 +29,6 @@ doctorRoutes.put(
 doctorRoutes.put("/A/:id", updateDoctorAvailableDate);
 doctorRoutes.delete("/:id", deleteDoctor);
 doctorRoutes.post("/login", login);
-doctorRoutes.get("/department/:id", getDepartmentDoctors);
 doctorRoutes.get("/appoint", getDoctorsWithAppointments);
 //======================================================
 export default doctorRoutes;

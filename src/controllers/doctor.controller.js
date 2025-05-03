@@ -321,23 +321,6 @@ const getDoctorsWithAppointments = async (req, res) => {
   }
 };
 
-const getDepartmentDoctors = async (req, res) => {
-  try {
-    const { id } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ message: "invalid id" });
-    }
-    let doctors = await doctorModel
-      .find({ department: id })
-      .select("name")
-      .select("specialization");
-    return res
-      .status(200)
-      .json({ message: "get doctors successfully", doctors: doctors });
-  } catch (error) {
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
 
 //======================================================
 export {
@@ -349,5 +332,5 @@ export {
   updateDoctor,
   deleteDoctor,
   getDoctorsWithAppointments,
-  getDepartmentDoctors,
+  
 };

@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { departmentModel } from "../models/department.model.js";
 import { doctorModel } from "../models/doctor.model.js";
+import departmentAvailabilityModel from "../models/departmentAvailability.model.js";
 //==============================================================
 const createDepartment = async (req, res) => {
   try {
@@ -114,32 +115,196 @@ const deleteDepartment = async (req, res) => {
 const getDepartmentDoctors = async (req, res) => {
   const { id } = req.params;
 
-  id ? console.log(id) : "not found";
+  try {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid id." });
+    }
+    const department = await departmentModel.findById(id);
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).json({ message: "Invalid id." });
+    if (!department) {
+      return res.status(404).json({ message: "Department not found." });
+    }
+
+    const departmentDoctors = await doctorModel
+      .find({ department: id })
+      .select(
+        "Image name gender userName specialization price gender phone dateOfBirth experience history"
+      )
+      .populate("department");
+
+    res
+      .status(200)
+      .json({ message: "Done successfully.", data: departmentDoctors });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: error.message || "Internal server error." });
   }
+};
 
-  const department = await departmentModel.findById(id);
+const addDepartmentAvailability = async (req, res) => {
+  const { id } = req.params;
+  const { availableDates } = req.body;
 
-  if (!department) {
-    return res.status(404).json({ message: "Department not found." });
+  try {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid department id." });
+    }
+
+    const department = await departmentModel.findById(id);
+    if (!department) {
+      return res.status(400).json({ message: "Department not found." });
+    }
+
+    // check if any day is duplicated or not
+    const seenDays = new Set();
+    for (let date of availableDates) {
+      const day = date.day.toLowerCase();
+      if (seenDays.has(day)) {
+        return res
+          .status(400)
+          .json({ message: `Duplicate day in request: ${date.day}` });
+      }
+      seenDays.add(day);
+    }
+
+    let departmentAvailability = await departmentAvailabilityModel.findOne({
+      department: id,
+    });
+
+    if (!departmentAvailability) {
+      departmentAvailability = new departmentAvailabilityModel({
+        department: id,
+        availableDates: [],
+      });
+    }
+
+    // check if any day already exist or not
+    const existingDays = new Set(
+      departmentAvailability.availableDates.map((d) => d.day.toLowerCase())
+    );
+    for (let date of availableDates) {
+      const day = date.day.toLowerCase();
+      if (existingDays.has(day)) {
+        return res
+          .status(400)
+          .json({ message: `Day ${date.day} already exists.` });
+      }
+    }
+
+    departmentAvailability.availableDates.push(...availableDates);
+    await departmentAvailability.save();
+
+    return res.status(201).json({
+      message: "Available dates added successfully.",
+      data: departmentAvailability,
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: error.message || "Internal server error" });
   }
+};
 
-  const departmentDoctors = await doctorModel
-    .find({ department: id })
-    .select(
-      "Image name specialization userName price gender dateOfBirth experience history"
-    )
-    .populate("department");
+const updateDepartmentAvailability = async (req, res) => {
+  const { id } = req.params;
+  const { day, openTime, closeTime } = req.body;
 
-  res.status(200).json({ message: "done", data: departmentDoctors });
+  try {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid department id." });
+    }
+
+    const departmentAvailability = await departmentAvailabilityModel.findOne({
+      department: id,
+    });
+
+    if (!departmentAvailability) {
+      return res
+        .status(404)
+        .json({ message: "Department availability not found." });
+    }
+
+    const dateIndex = departmentAvailability.availableDates.findIndex(
+      (d) => d.day.toLowerCase() === day.toLowerCase()
+    );
+
+    if (dateIndex === -1) {
+      return res
+        .status(404)
+        .json({ message: `Day ${day} not found in availability.` });
+    }
+
+    if (openTime)
+      departmentAvailability.availableDates[dateIndex].openTime = openTime;
+    if (closeTime)
+      departmentAvailability.availableDates[dateIndex].closeTime = closeTime;
+
+    await departmentAvailability.save();
+
+    return res.status(200).json({
+      message: `Availability for ${day} updated successfully.`,
+      data: departmentAvailability,
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: error.message || "Internal server error" });
+  }
+};
+
+const deleteDepartmentAvailability = async (req, res) => {
+  const { id } = req.params;
+  const { day } = req.body;
+
+  try {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid department id." });
+    }
+
+    const departmentAvailability = await departmentAvailabilityModel.findOne({
+      department: id,
+    });
+
+    if (!departmentAvailability) {
+      return res
+        .status(404)
+        .json({ message: "Department availability not found." });
+    }
+
+    const initialLength = departmentAvailability.availableDates.length;
+
+    departmentAvailability.availableDates =
+      departmentAvailability.availableDates.filter(
+        (d) => d.day.toLowerCase() !== day.toLowerCase()
+      );
+
+    if (departmentAvailability.availableDates.length === initialLength) {
+      return res
+        .status(404)
+        .json({ message: `Day ${day} not found in availability.` });
+    }
+
+    await departmentAvailability.save();
+
+    return res.status(200).json({
+      message: `Day ${day} deleted successfully from availability.`,
+      data: departmentAvailability,
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: error.message || "Internal server error" });
+  }
 };
 
 //==============================================================
 
 export {
   createDepartment,
+  addDepartmentAvailability,
+  updateDepartmentAvailability,
+  deleteDepartmentAvailability,
   getAllDepartments,
   getDepartmentDoctors,
   getDepartmentById,
