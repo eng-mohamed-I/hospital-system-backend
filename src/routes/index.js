@@ -8,12 +8,14 @@ import appointmentRoutes from "./appointment.routes.js";
 import doctorRoutes from "./doctor.routes.js";
 import reportRoutes from "./report.routes.js";
 import specialiesRoutes from "./specialies.routes.js";
+import availableDatesRoutes from "./availableDates.routes.js";
 //======================================================
 const routes = Router();
 
 routes.use("/auth/users", userRoutes);
 routes.use("/auth/patients", patientRoutes);
 routes.use("/auth/doctors", doctorRoutes);
+routes.use("doctors/available-dates/:id", availableDatesRoutes);
 routes.use("/blogs", blogRoutes);
 routes.use("/news", newsRoutes);
 
@@ -21,5 +23,6 @@ routes.use("/departments", departmentRoutes);
 routes.use("/appointments", appointmentRoutes);
 routes.use("/reports", reportRoutes);
 routes.use("/specialties", specialiesRoutes);
+
 //======================================================
 export default routes;

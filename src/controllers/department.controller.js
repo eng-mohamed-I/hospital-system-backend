@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { departmentModel } from "../models/department.model.js";
+import { doctorModel } from "../models/doctor.model.js";
 //==============================================================
 const createDepartment = async (req, res) => {
   try {
@@ -26,7 +27,7 @@ const createDepartment = async (req, res) => {
 // Get all departments
 const getAllDepartments = async (req, res) => {
   try {
-    const departments = await departmentModel.find().populate("doctors");
+    const departments = await departmentModel.find();
 
     if (!departments) {
       return res.status(400).json({ message: "No available Deparment yet" });
@@ -47,7 +48,7 @@ const getDepartmentById = async (req, res) => {
   }
 
   try {
-    const department = await departmentModel.findById(id).populate("doctors");
+    const department = await departmentModel.findById(id);
     if (!department) {
       return res.status(404).json({ message: "Department not found" });
     }
@@ -110,11 +111,37 @@ const deleteDepartment = async (req, res) => {
   }
 };
 
+const getDepartmentDoctors = async (req, res) => {
+  const { id } = req.params;
+
+  id ? console.log(id) : "not found";
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ message: "Invalid id." });
+  }
+
+  const department = await departmentModel.findById(id);
+
+  if (!department) {
+    return res.status(404).json({ message: "Department not found." });
+  }
+
+  const departmentDoctors = await doctorModel
+    .find({ department: id })
+    .select(
+      "Image name specialization userName price gender dateOfBirth experience history"
+    )
+    .populate("department");
+
+  res.status(200).json({ message: "done", data: departmentDoctors });
+};
+
 //==============================================================
 
 export {
   createDepartment,
   getAllDepartments,
+  getDepartmentDoctors,
   getDepartmentById,
   updateDepartment,
   deleteDepartment,
