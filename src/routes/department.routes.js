@@ -21,7 +21,7 @@ departmentRoutes.delete("/:id/availability", deleteDepartmentAvailability);
 
 departmentRoutes.get("/", getAllDepartments);
 departmentRoutes.get("/:id", getDepartmentById);
-departmentRoutes.get("/doctors/:id", getDepartmentDoctors);
+departmentRoutes.get("/:id/doctors", getDepartmentDoctors);
 
 departmentRoutes.put("/:id", isAdmin, updateDepartment);
 
