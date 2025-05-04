@@ -10,21 +10,23 @@ import {
   addDepartmentAvailability,
   updateDepartmentAvailability,
   deleteDepartmentAvailability,
+  getDepartmentAvailbaility,
 } from "../controllers/department.controller.js";
 //======================================================
 const departmentRoutes = Router();
 
 departmentRoutes.post("/", createDepartment);
 departmentRoutes.post("/:id/availability", addDepartmentAvailability);
-departmentRoutes.put("/:id/availability", updateDepartmentAvailability);
-departmentRoutes.delete("/:id/availability", deleteDepartmentAvailability);
 
 departmentRoutes.get("/", getAllDepartments);
 departmentRoutes.get("/:id", getDepartmentById);
 departmentRoutes.get("/:id/doctors", getDepartmentDoctors);
+departmentRoutes.get("/:id/availability", getDepartmentAvailbaility);
 
-departmentRoutes.put("/:id", isAdmin, updateDepartment);
+departmentRoutes.put("/:id", updateDepartment);
+departmentRoutes.put("/:id/availability", updateDepartmentAvailability);
 
-departmentRoutes.delete("/:id", isAdmin, deleteDepartment);
+departmentRoutes.delete("/:id", deleteDepartment);
+departmentRoutes.delete("/:id/availability", deleteDepartmentAvailability);
 //======================================================
 export default departmentRoutes;

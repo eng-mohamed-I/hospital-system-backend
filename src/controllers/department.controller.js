@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import { departmentModel } from "../models/department.model.js";
 import { doctorModel } from "../models/doctor.model.js";
 import departmentAvailabilityModel from "../models/departmentAvailability.model.js";
+import APIFeatures from "../utilities/apiFeatures.js";
 //==============================================================
 const createDepartment = async (req, res) => {
   try {
@@ -25,22 +26,26 @@ const createDepartment = async (req, res) => {
   }
 };
 
-// Get all departments
 const getAllDepartments = async (req, res) => {
   try {
-    const departments = await departmentModel.find();
+    const { query } = req;
 
-    if (!departments) {
-      return res.status(400).json({ message: "No available Deparment yet" });
-    }
+    const features = new APIFeatures(departmentModel.find(), query)
+      .filter()
+      .sort()
+      .limitFields()
+      .paginate();
 
-    res.status(200).json({ message: "success", departments });
+    const departments = await features.query;
+
+    res
+      .status(200)
+      .json({ message: "Departments founded successfully", data: departments });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// Get a department by ID
 const getDepartmentById = async (req, res) => {
   const { id } = req.params;
 
@@ -59,7 +64,6 @@ const getDepartmentById = async (req, res) => {
   }
 };
 
-// Update a department by ID
 const updateDepartment = async (req, res) => {
   const { name } = req.body;
   const { id } = req.params;
@@ -95,7 +99,6 @@ const updateDepartment = async (req, res) => {
   }
 };
 
-// Delete a department by ID
 const deleteDepartment = async (req, res) => {
   const { id } = req.params;
   if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -135,6 +138,42 @@ const getDepartmentDoctors = async (req, res) => {
     res
       .status(200)
       .json({ message: "Done successfully.", data: departmentDoctors });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: error.message || "Internal server error." });
+  }
+};
+//==============================================================
+const getDepartmentAvailbaility = async (req, res) => {
+  const { id } = req.params;
+  const { query } = req;
+
+  try {
+    const features = new APIFeatures(
+      departmentAvailabilityModel.findOne(),
+      query
+    )
+      .filter()
+      .sort()
+      .limitFields()
+      .paginate();
+
+    if (!features) {
+      res.status(404).json({
+        message: "The department does not have a booking date available yet.",
+      });
+    }
+
+    const departmentAvailability = await features.query.populate(
+      "department",
+      "name description"
+    );
+
+    res.status(200).json({
+      message: "Get department availability.",
+      data: departmentAvailability,
+    });
   } catch (error) {
     res
       .status(500)
@@ -297,11 +336,10 @@ const deleteDepartmentAvailability = async (req, res) => {
       .json({ message: error.message || "Internal server error" });
   }
 };
-
 //==============================================================
-
 export {
   createDepartment,
+  getDepartmentAvailbaility,
   addDepartmentAvailability,
   updateDepartmentAvailability,
   deleteDepartmentAvailability,
