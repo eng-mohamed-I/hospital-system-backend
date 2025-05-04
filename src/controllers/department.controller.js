@@ -145,13 +145,33 @@ const getDepartmentDoctors = async (req, res) => {
   }
 };
 //==============================================================
+const SearchDepartmentAvailability = async (req, res) => {
+  const { query } = req;
+  try {
+    const features = new APIFeatures(departmentModel.find(), query)
+      .search("name")
+      .paginate();
+
+    const departments = await features.query;
+
+    res.status(200).json({
+      message: "Departments founded successfully.",
+      data: departments,
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: error.message || "Internal server error." });
+  }
+};
+
 const getDepartmentAvailbaility = async (req, res) => {
   const { id } = req.params;
   const { query } = req;
 
   try {
     const features = new APIFeatures(
-      departmentAvailabilityModel.findOne(),
+      departmentAvailabilityModel.findOne({ department: id }),
       query
     )
       .filter()
@@ -342,6 +362,7 @@ export {
   getDepartmentAvailbaility,
   addDepartmentAvailability,
   updateDepartmentAvailability,
+  SearchDepartmentAvailability,
   deleteDepartmentAvailability,
   getAllDepartments,
   getDepartmentDoctors,
