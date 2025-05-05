@@ -162,13 +162,11 @@ const getDepartmentDoctors = async (req, res) => {
       )
       .populate("department");
 
-    res
-      .status(200)
-      .json({
-        message: "Done successfully.",
-        data: departmentDoctors,
-        results: departmentDoctors.length,
-      });
+    res.status(200).json({
+      message: "Done successfully.",
+      data: departmentDoctors,
+      results: departmentDoctors.length,
+    });
   } catch (error) {
     res
       .status(500)
@@ -198,28 +196,17 @@ const SearchDepartmentAvailability = async (req, res) => {
 
 const getDepartmentAvailbaility = async (req, res) => {
   const { id } = req.params;
-  const { query } = req;
 
   try {
-    const features = new APIFeatures(
-      departmentAvailabilityModel.findOne({ department: id }),
-      query
-    )
-      .filter()
-      .sort()
-      .limitFields()
-      .paginate();
+    const departmentAvailability = await departmentAvailabilityModel
+      .findOne({ department: id })
+      .populate("department", "name description");
 
-    if (!features) {
-      res.status(404).json({
+    if (!departmentAvailability) {
+      return res.status(404).json({
         message: "The department does not have a booking date available yet.",
       });
     }
-
-    const departmentAvailability = await features.query.populate(
-      "department",
-      "name description"
-    );
 
     res.status(200).json({
       message: "Get department availability.",
@@ -228,7 +215,7 @@ const getDepartmentAvailbaility = async (req, res) => {
   } catch (error) {
     res
       .status(500)
-      .json({ message: error.message || "Internal server error." });
+      .json({ message: error?.message || "Internal server error." });
   }
 };
 
