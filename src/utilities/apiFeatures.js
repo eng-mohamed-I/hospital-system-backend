@@ -7,6 +7,7 @@ class APIFeatures {
   constructor(query, queryString) {
     this.query = query;
     this.queryString = queryString;
+    const length = this.query.length;
   }
 
   filter() {
@@ -57,6 +58,18 @@ class APIFeatures {
       });
     }
     return this;
+  }
+
+  async getTotalCount() {
+    const queryObj = { ...this.queryString };
+    const excludedFields = ["page", "sort", "limit", "fields"];
+    excludedFields.forEach((el) => delete queryObj[el]);
+
+    let queryStr = JSON.stringify(queryObj);
+    queryStr = queryStr.replace(/\b(gt|gte|lt|lte)\b/g, (match) => `$${match}`);
+    const parsedQuery = JSON.parse(queryStr);
+
+    return await this.query.model.countDocuments(parsedQuery);
   }
 
   aggregate(pipline) {

@@ -36,11 +36,16 @@ const getAllDepartments = async (req, res) => {
       .limitFields()
       .paginate();
 
-    const departments = await features.query;
+    const docs = await features.query;
+    const results = docs.length;
+    const total = await features.getTotalCount();
+    const totalPages = Math.ceil(total / req.query.limit || 10);
 
-    res
-      .status(200)
-      .json({ message: "Departments founded successfully", data: departments });
+    res.status(200).json({
+      total: totalPages,
+      results,
+      data: docs,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -54,13 +59,35 @@ const getDepartmentById = async (req, res) => {
   }
 
   try {
-    const department = await departmentModel.findById(id);
-    if (!department) {
+    const docs = await departmentModel.findById(id);
+    if (!docs) {
       return res.status(404).json({ message: "Department not found" });
     }
-    res.status(200).json({ message: "success", department });
+
+    res.status(200).json({ message: "success", data: docs });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+const searchDepartment = async (req, res) => {
+  const { query } = req;
+  try {
+    const features = new APIFeatures(departmentModel.find(), query)
+      .search("name")
+      .paginate();
+
+    const limit = query.limit || 10;
+    const docs = await features.query;
+    const totalPages = Math.ceil(docs.length / limit);
+
+    res
+      .status(200)
+      .json({ total: totalPages, results: docs.length, data: docs });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Internal server error." || error.message });
   }
 };
 
@@ -137,7 +164,11 @@ const getDepartmentDoctors = async (req, res) => {
 
     res
       .status(200)
-      .json({ message: "Done successfully.", data: departmentDoctors });
+      .json({
+        message: "Done successfully.",
+        data: departmentDoctors,
+        results: departmentDoctors.length,
+      });
   } catch (error) {
     res
       .status(500)
@@ -360,6 +391,7 @@ const deleteDepartmentAvailability = async (req, res) => {
 export {
   createDepartment,
   getDepartmentAvailbaility,
+  searchDepartment,
   addDepartmentAvailability,
   updateDepartmentAvailability,
   SearchDepartmentAvailability,

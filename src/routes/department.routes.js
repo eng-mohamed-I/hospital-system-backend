@@ -12,6 +12,7 @@ import {
   deleteDepartmentAvailability,
   getDepartmentAvailbaility,
   SearchDepartmentAvailability,
+  searchDepartment,
 } from "../controllers/department.controller.js";
 //======================================================
 const departmentRoutes = Router();
@@ -19,7 +20,8 @@ const departmentRoutes = Router();
 departmentRoutes.post("/", createDepartment);
 departmentRoutes.post("/:id/availability", addDepartmentAvailability);
 
-departmentRoutes.get("/search", SearchDepartmentAvailability);
+departmentRoutes.get("/availablility/search", SearchDepartmentAvailability);
+departmentRoutes.get("/search", searchDepartment);
 departmentRoutes.get("/", getAllDepartments);
 departmentRoutes.get("/:id", getDepartmentById);
 departmentRoutes.get("/:id/doctors", getDepartmentDoctors);
