@@ -9,7 +9,7 @@ const availableDatesSchema = new Schema(
   },
   { _id: false }
 );
-
+  
 const doctorAvailabilitySchema = new Schema(
   {
     doctor: {
