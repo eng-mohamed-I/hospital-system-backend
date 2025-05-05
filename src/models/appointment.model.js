@@ -2,24 +2,25 @@ import { Schema, model } from "mongoose";
 //=============================================================
 const appointmentSchema = new Schema(
   {
-    patientID: {
+    patient: {
       type: Schema.Types.ObjectId,
       ref: "Patient",
       required: true,
     },
-    departmentID: {
+    department: {
       type: Schema.Types.ObjectId,
       ref: "Department",
-      required: true,
+      default: null,
     },
-    doctorID: {
+    doctor: {
       type: Schema.Types.ObjectId,
       ref: "Doctor",
       default: null,
     },
+    day: { type: String, default: null },
     date: {
       type: Date,
-      required: true,
+      default: null,
     },
     fromTime: {
       type: String,
@@ -41,5 +42,4 @@ const appointmentSchema = new Schema(
   { timestamps: true, versionKey: false }
 );
 //=============================================================
-
 export const appointmentModel = model("Appointment", appointmentSchema);
