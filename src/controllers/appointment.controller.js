@@ -7,6 +7,10 @@ import { sendSMS } from "../services/sendSMS.js";
 import jwt from "jsonwebtoken";
 import { reportModel } from "../models/report.model.js";
 import mongoose from "mongoose";
+import { departmentModel } from "../models/department.model.js";
+import departmentAvailabilityModel from "../models/departmentAvailability.model.js";
+import doctorAvailabilityModel from "../models/doctorAvailability.model.js";
+import { getNextDateOfDay, timeToMinutes } from "../utilities/dateUtils.js";
 //==========================================================
 const stripe = new Stripe(
   "sk_test_51Q0Stx1BDc3FGejoe8y5l8EKXCy9zylTH6kWjLmWqVUKUsgvbgLi1ZCbotQefcrRxkRlMoAVMfDyGVtAHSUounpY00DVLBjyO3"
@@ -40,83 +44,127 @@ const getAppointmentDetails = async (req, res) => {
 
 const bookAppointment = async (req, res) => {
   try {
-    const { doctorID, patientEmail, date, time, department, price } = req.body;
+    const { doctor, patient, date, fromTime, toTime, department, price, day } =
+      req.body;
 
-    // Find the patient by email
-    const patient = await patientModel.findOne({ email: patientEmail });
-    if (!patient) {
-      return res.status(404).json({ message: "Patient not found" });
+    let finalDate = date;
+
+    const existingPatient = await patientModel.findById(patient);
+    if (!existingPatient) {
+      return res.status(404).json({ message: "Patient not found." });
     }
 
-    // Check if the patient already has an appointment with the same doctor on the same date
-    const existingAppointment = await appointmentModel.findOne({
-      doctorID,
-      patientID: patient._id,
-      date,
-      status: "not completed",
-    });
+    const isDoctorBooking = !!doctor;
 
-    if (existingAppointment) {
-      return res.status(409).json({
-        message: "You already have an appointment with this doctor on this day",
+    if (isDoctorBooking) {
+      const existingDoctor = await doctorModel.findById(doctor);
+      if (!existingDoctor) {
+        return res.status(404).json({ message: "Doctor not found." });
+      }
+
+      const conflict = await appointmentModel.findOne({
+        doctor,
+        date,
+        fromTime,
+        toTime,
       });
+
+      if (conflict) {
+        return res.status(409).json({
+          message: "This time slot is already booked for this doctor.",
+        });
+      }
+
+      const doctorAvailability = await doctorAvailabilityModel.findOne({
+        doctor,
+        availableDates: {
+          $elemMatch: {
+            date,
+            fromTime,
+            toTime,
+            isBooked: false,
+          },
+        },
+      });
+
+      if (!doctorAvailability) {
+        return res.status(404).json({
+          message: "Doctor is not available on this date.",
+        });
+      }
+    } else {
+      const existingDepartment = await departmentModel.findById(department);
+      if (!existingDepartment) {
+        return res.status(404).json({ message: "Department not found." });
+      }
+
+      if (!day) {
+        return res
+          .status(400)
+          .json({ message: "Day is required for department booking." });
+      }
+
+      const normalizedDay = day.toLowerCase();
+      const nextAvailableDate = getNextDateOfDay(day);
+      finalDate = nextAvailableDate;
+
+      const existingAppointment = await appointmentModel.findOne({
+        department,
+        date: nextAvailableDate,
+        day: normalizedDay,
+      });
+
+      console.log(existingAppointment);
+      const fromMinutes = timeToMinutes(fromTime);
+      const toMinutes = timeToMinutes(toTime);
+
+      if (existingAppointment) {
+        const appFrom = timeToMinutes(existingAppointment.fromTime);
+        const appTo = timeToMinutes(existingAppointment.toTime);
+
+        console.log("form existing", existingAppointment);
+        if (fromMinutes < appTo && toMinutes > appFrom) {
+          return res.status(409).json({
+            message: "This time slot is already booked for this department.",
+          });
+        }
+      }
+
+      const departmentAvailability = await departmentAvailabilityModel.findOne({
+        department,
+        availableDates: {
+          $elemMatch: {
+            day: normalizedDay,
+            openTime: { $lte: fromTime },
+            closeTime: { $gte: toTime },
+          },
+        },
+      });
+
+      if (!departmentAvailability) {
+        return res.status(404).json({
+          message: "Department is not available on this day or time.",
+        });
+      }
     }
 
-    const doctor = await doctorModel.findById(doctorID);
-    if (!doctor) {
-      return res.status(404).json({ message: "Doctor not found" });
-    }
-    const formatedDate = new Date(date).toLocaleDateString();
-
-    const message = `Your appointment with Dr. ${doctor.name} on ${formatedDate} at ${time} has been confirmed.`;
-    // sendSMS('201110498656', message);
-    // Create a new appointment
     const newAppointment = new appointmentModel({
-      doctorID,
-      patientID: patient._id,
-      date,
-      time,
-      department,
+      patient,
+      doctor: doctor || null,
+      department: department || null,
+      date: finalDate,
+      day: day || null,
+      fromTime,
+      toTime,
       status: "not completed",
+      price,
     });
 
-    // Save the appointment
-
-    // ^ ====================== Payment Section ==============================
-
-    // Create Stripe checkout session
-    // const session = await stripe.checkout.sessions.create({
-    //   payment_method_types: ['card'], // Only accept card payments
-    //   mode: 'payment', // Use payment mode for one-time charges
-    //   customer_email: patientEmail, // Send the invoice/receipt to the patient
-    //   metadata: {
-    //     appointmentID: savedAppointment._id.toString(),
-    //     doctorID: doctorID,
-    //   }, // Store metadata like appointment or doctor info
-    //   success_url: 'https://your-frontend-url.com/success', // URL after successful payment
-    //   cancel_url: 'https://your-frontend-url.com/cancel', // URL after cancelling payment
-    //   line_items: [
-    //     {
-    //       price_data: {
-    //         currency: 'usd',
-    //         product_data: {
-    //           name: `Appointment with Doctor ${doctorID}`,
-    //         },
-    //         unit_amount: price * 100, // Convert price to cents as Stripe expects amounts in cents
-    //       },
-    //       quantity: 1, // Default to 1 appointment
-    //     },
-    //   ],
-    // });
-
-    // ^ ====================== Payment Section ==============================
-
-    // Send the session ID to the client so they can redirect to Stripe's hosted checkout page
     const savedAppointment = await newAppointment.save();
+
     res.status(201).json({
       message: "Appointment booked successfully",
-      appointment: savedAppointment,
-      // sessionId: session.id, // Pass session ID for Stripe checkout
+      data: savedAppointment,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

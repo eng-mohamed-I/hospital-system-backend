@@ -2,14 +2,14 @@ import { Schema, model } from "mongoose";
 //================================================
 const availableDatesSchema = new Schema(
   {
-    date: { type: Date, required: true },
+    date: { type: String, required: true },
     fromTime: { type: String, required: true },
     toTime: { type: String, required: true },
     isBooked: { type: Boolean, default: false },
   },
   { _id: false }
 );
-  
+
 const doctorAvailabilitySchema = new Schema(
   {
     doctor: {

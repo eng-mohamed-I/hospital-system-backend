@@ -11,7 +11,6 @@ import {
   updateAppointmentStatus,
 } from "../controllers/appointment.controller.js";
 //=====================================================
-
 const appointmentRoutes = Router();
 
 appointmentRoutes.get("/:appointmentID", getAppointmentDetails);

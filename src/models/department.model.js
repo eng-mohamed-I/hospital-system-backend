@@ -14,6 +14,10 @@ const departmentSchema = new Schema(
       type: String,
       trim: true,
     },
+    price: {
+      type: Number,
+      required: true,
+    },
   },
   { timestamps: true, versionKey: false }
 );

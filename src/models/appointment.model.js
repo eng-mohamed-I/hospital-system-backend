@@ -19,7 +19,7 @@ const appointmentSchema = new Schema(
     },
     day: { type: String, default: null },
     date: {
-      type: Date,
+      type: String,
       default: null,
     },
     fromTime: {
@@ -37,6 +37,11 @@ const appointmentSchema = new Schema(
     },
     notes: {
       type: String,
+      default: null,
+    },
+    price: {
+      type: Number,
+      required: true,
     },
   },
   { timestamps: true, versionKey: false }

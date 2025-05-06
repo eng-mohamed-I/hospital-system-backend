@@ -10,7 +10,7 @@ const availableDatesSchema = new Schema(
         "monday",
         "tuesday",
         "wednesday",
-        "hursday",
+        "thursday",
         "friday",
       ],
       required: true,
