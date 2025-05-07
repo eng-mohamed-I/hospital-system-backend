@@ -14,7 +14,7 @@ const routes = Router();
 
 routes.use("/auth/users", userRoutes);
 routes.use("/auth/patients", patientRoutes);
-routes.use("/auth/doctors", doctorRoutes);
+routes.use("/doctors", doctorRoutes);
 routes.use("doctors/available-dates/:id", availableDatesRoutes);
 routes.use("/blogs", blogRoutes);
 routes.use("/news", newsRoutes);

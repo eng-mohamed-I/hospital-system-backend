@@ -4,6 +4,7 @@ import cloudinary from "../utilities/cloudinaryConfig.js";
 import jwt from "jsonwebtoken";
 import { departmentModel } from "../models/department.model.js";
 import mongoose from "mongoose";
+import doctorAvailabilityModel from "../models/doctorAvailability.model.js";
 //======================================================
 const nanoid = customAlphabet("123456_=!ascbhdtel", 5);
 
@@ -44,8 +45,6 @@ const getDoctorById = async (req, res) => {
   try {
     const doctor = await doctorModel
       .findById(req.params.id)
-      .populate("appointments.appointID")
-      .populate("appointments.patientID")
       .populate("department");
 
     if (!doctor) {
@@ -321,6 +320,84 @@ const getDoctorsWithAppointments = async (req, res) => {
   }
 };
 
+const addDoctorAvailbility = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { availableDates } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid doctor id." });
+    }
+
+    const doctor = await doctorModel.findById(id);
+    if (!doctor) {
+      return res.status(404).json({ message: "Doctor not found." });
+    }
+
+    const today = new Date();
+    const dateMap = new Map();
+
+    for (let i = 0; i < availableDates.length; i++) {
+      const { date, fromTime, toTime } = availableDates[i];
+      const fullDate = new Date(date);
+
+      if (new Date(fullDate.toDateString()) < new Date(today.toDateString())) {
+        return res.status(400).json({ message: `Expired date: ${date}` });
+      }
+
+      if (fromTime >= toTime) {
+        return res
+          .status(400)
+          .json({ message: `Invalid time range on ${date}` });
+      }
+
+      const key = `${date}-${fromTime}-${toTime}`;
+      if (dateMap.has(key)) {
+        return res
+          .status(400)
+          .json({ message: `Duplicated slot: ${date} ${fromTime}-${toTime}` });
+      }
+      dateMap.set(key, true);
+    }
+
+    let doctorAvailability = await doctorAvailabilityModel.findOne({
+      doctor: id,
+    });
+    if (!doctorAvailability) {
+      doctorAvailability = new doctorAvailabilityModel({
+        doctor: id,
+        availableDates,
+      });
+    } else {
+      const existingSlots = new Set(
+        doctorAvailability.availableDates.map(
+          (slot) => `${slot.date}-${slot.fromTime}-${slot.toTime}`
+        )
+      );
+
+      for (const slot of availableDates) {
+        const key = `${slot.date}-${slot.fromTime}-${slot.toTime}`;
+        if (existingSlots.has(key)) {
+          return res.status(400).json({
+            message: `Time slot already exists: ${slot.date} ${slot.fromTime}-${slot.toTime}`,
+          });
+        }
+      }
+
+      doctorAvailability.availableDates.push(...availableDates);
+    }
+    await doctorAvailability.save();
+
+    return res.status(200).json({
+      message: "Availability added successfully.",
+      data: doctorAvailability,
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: error.message || "Internal server error." });
+  }
+};
 
 //======================================================
 export {
@@ -332,5 +409,5 @@ export {
   updateDoctor,
   deleteDoctor,
   getDoctorsWithAppointments,
-  
+  addDoctorAvailbility,
 };

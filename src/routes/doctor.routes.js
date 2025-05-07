@@ -2,6 +2,7 @@ import { Router } from "express";
 import { multerCloudFunction } from "../services/multerCloud.js";
 import { allowedExtensions } from "../utilities/allowedEtentions.js";
 import {
+  addDoctorAvailbility,
   createDoctor,
   deleteDoctor,
   getAllDoctors,
@@ -17,7 +18,7 @@ const doctorRoutes = Router();
 doctorRoutes.get("/", getAllDoctors);
 doctorRoutes.get("/:id", getDoctorById);
 doctorRoutes.post(
-  "/",
+  "/auth",
   multerCloudFunction(allowedExtensions.Image).single("image"),
   createDoctor
 );
@@ -26,6 +27,7 @@ doctorRoutes.put(
   multerCloudFunction(allowedExtensions.Image).single("image"),
   updateDoctor
 );
+doctorRoutes.post("/:id/availablility", addDoctorAvailbility);
 doctorRoutes.put("/A/:id", updateDoctorAvailableDate);
 doctorRoutes.delete("/:id", deleteDoctor);
 doctorRoutes.post("/login", login);
