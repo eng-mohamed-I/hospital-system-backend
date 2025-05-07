@@ -34,6 +34,24 @@ const getAllDoctors = async (req, res) => {
   }
 };
 
+const searchDoctor = async (req, res) => {
+  const { query } = req;
+  try {
+    const features = new APIFeatures(doctorModel.find(), query)
+      .search("name")
+      .paginate();
+
+    const limit = query.limit || 10;
+    const docs = await features.query;
+    const totalPages = Math.ceil(docs.length / limit);
+
+    res.status(200).json({ totalPages, results: docs.length, data: docs });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Internal server error." || error.message });
+  }
+};
 const getDoctorById = async (req, res) => {
   try {
     const doctor = await doctorModel
@@ -59,7 +77,6 @@ const createDoctor = async (req, res) => {
       userName,
       nationalID,
       department,
-      availableDates,
       email,
       phone,
       price,
@@ -76,8 +93,6 @@ const createDoctor = async (req, res) => {
       folder: `Hospital/Doctors/${customId}`,
     });
 
-    console.log(uploadResult);
-
     if (department) {
       if (!mongoose.Types.ObjectId.isValid(department)) {
         return res.status(400).json({ message: "Invalid department Id." });
@@ -93,28 +108,6 @@ const createDoctor = async (req, res) => {
       return res.status(400).json({ message: "No file uploaded." });
     }
 
-    let parsedAvailableDates;
-
-    if (availableDates) {
-      try {
-        parsedAvailableDates =
-          typeof availableDates === "string"
-            ? JSON.parse(availableDates)
-            : availableDates;
-
-        parsedAvailableDates.forEach((date) => {
-          if (!date.date || !date.fromTime || !date.toTime) {
-            throw new Error("Invalid date format");
-          }
-        });
-      } catch (error) {
-        return res.status(400).json({
-          message: "Invalid availableDates format",
-          error: error.message,
-        });
-      }
-    }
-
     const { secure_url, public_id } = uploadResult;
 
     const doctor = new doctorModel({
@@ -123,7 +116,6 @@ const createDoctor = async (req, res) => {
       userName,
       nationalID,
       department,
-      availableDates: parsedAvailableDates, // Use parsed data
       email,
       phone,
       price,
@@ -484,4 +476,5 @@ export {
   addDoctorAvailbility,
   deleteDoctorAvailabilitySlot,
   getDoctorAvailability,
+  searchDoctor,
 };

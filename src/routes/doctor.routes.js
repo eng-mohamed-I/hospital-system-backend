@@ -11,6 +11,7 @@ import {
   getDoctorById,
   getDoctorsWithAppointments,
   login,
+  searchDoctor,
   updateDoctor,
   updateDoctorAvailableDate,
 } from "../controllers/doctor.controller.js";
@@ -26,6 +27,7 @@ doctorRoutes.post("/login", login);
 doctorRoutes.post("/:id/availability", addDoctorAvailbility);
 
 doctorRoutes.get("/", getAllDoctors);
+doctorRoutes.get("/search", searchDoctor);
 doctorRoutes.get("/:id", getDoctorById);
 doctorRoutes.get("/appoint", getDoctorsWithAppointments);
 doctorRoutes.get("/:id/availability", getDoctorAvailability);

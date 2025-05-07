@@ -39,25 +39,6 @@ const doctorSchema = new Schema(
       ref: "Department",
       required: true,
     },
-    availableDates: {
-      type: [
-        {
-          date: {
-            type: Date,
-            // required: true,
-          },
-          fromTime: {
-            type: String,
-            // required: true,
-          },
-          toTime: {
-            type: String,
-            // required: true,
-          },
-        },
-      ],
-      default: null,
-    },
     price: {
       type: Number,
       required: true,
