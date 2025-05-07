@@ -39,7 +39,8 @@ const getAllDepartments = async (req, res) => {
     const docs = await features.query;
     const results = docs.length;
     const total = await features.getTotalCount();
-    const totalPages = Math.ceil(total / req.query.limit || 10);
+    const limit = req.query.limit || 10;
+    const totalPages = Math.ceil(total / limit);
 
     res.status(200).json({
       total: totalPages,

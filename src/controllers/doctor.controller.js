@@ -5,39 +5,32 @@ import jwt from "jsonwebtoken";
 import { departmentModel } from "../models/department.model.js";
 import mongoose from "mongoose";
 import doctorAvailabilityModel from "../models/doctorAvailability.model.js";
+import APIFeatures from "../utilities/apiFeatures.js";
 //======================================================
 const nanoid = customAlphabet("123456_=!ascbhdtel", 5);
 
 const getAllDoctors = async (req, res) => {
   try {
-    const filters = {};
+    const { query } = req;
 
-    if (req.query.specialization) {
-      filters.specialization = req.query.specialization;
-    }
-    if (req.query.gender) {
-      filters.gender = req.query.gender;
-    }
-    if (req.query.department) {
-      // Fetch the department ObjectId by name
-      const department = await departmentModel.findOne({
-        name: req.query.department,
-      });
-      if (department) {
-        filters.department = department._id; // Use the ObjectId for filtering
-      } else {
-        return res.status(404).json({ message: "Department not found" });
-      }
-    }
+    const features = new APIFeatures(
+      doctorModel.find().populate("department"),
+      query
+    )
+      .filter()
+      .sort()
+      .limitFields()
+      .paginate();
 
-    const doctors = await doctorModel
-      .find(filters)
-      .populate("department", "name");
-    res.status(200).json(doctors);
+    const docs = await features.query;
+    const total = await features.getTotalCount();
+    const results = docs.length;
+    const limit = query.limit || 10;
+    const totalPages = Math.ceil(total / limit);
+
+    res.status(200).json({ totalPages, results, data: docs });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Failed to retrieve doctors", error: error.message });
+    res.staus(500).json({ message: error.message || "Internal server error" });
   }
 };
 
