@@ -399,6 +399,85 @@ const addDoctorAvailbility = async (req, res) => {
   }
 };
 
+const deleteDoctorAvailabilitySlot = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { date, fromTime, toTime } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid doctor id." });
+    }
+
+    const doctorAvailability = await doctorAvailabilityModel.findOne({
+      doctor: id,
+    });
+    if (!doctorAvailability) {
+      return res
+        .status(404)
+        .json({ message: "Doctor availability not found." });
+    }
+
+    console.log(doctorAvailability);
+    const initialLength = doctorAvailability.availableDates.length;
+
+    doctorAvailability.availableDates =
+      doctorAvailability.availableDates.filter(
+        (slot) =>
+          !(
+            slot.date === date &&
+            slot.fromTime === fromTime &&
+            slot.toTime === toTime
+          )
+      );
+
+    if (doctorAvailability.availableDates.length === initialLength) {
+      return res.status(404).json({
+        message: `Time slot not found: ${date} ${fromTime}-${toTime}`,
+      });
+    }
+
+    await doctorAvailability.save();
+
+    return res.status(200).json({
+      message: "Time slot deleted successfully.",
+      data: doctorAvailability,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || "Internal server error.",
+    });
+  }
+};
+
+const getDoctorAvailability = async (req, res) => {
+  try {
+    const { id } = req.params; // doctorId
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid doctor id." });
+    }
+
+    const doctorAvailability = await doctorAvailabilityModel.findOne({
+      doctor: id,
+    });
+
+    if (!doctorAvailability) {
+      return res
+        .status(404)
+        .json({ message: "Doctor availability not found." });
+    }
+
+    return res.status(200).json({
+      message: "Doctor availability fetched successfully.",
+      data: doctorAvailability.availableDates,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || "Internal server error.",
+    });
+  }
+};
+
 //======================================================
 export {
   createDoctor,
@@ -410,4 +489,6 @@ export {
   deleteDoctor,
   getDoctorsWithAppointments,
   addDoctorAvailbility,
+  deleteDoctorAvailabilitySlot,
+  getDoctorAvailability,
 };

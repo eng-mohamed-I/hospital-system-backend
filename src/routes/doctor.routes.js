@@ -5,7 +5,9 @@ import {
   addDoctorAvailbility,
   createDoctor,
   deleteDoctor,
+  deleteDoctorAvailabilitySlot,
   getAllDoctors,
+  getDoctorAvailability,
   getDoctorById,
   getDoctorsWithAppointments,
   login,
@@ -15,22 +17,27 @@ import {
 //======================================================
 const doctorRoutes = Router();
 
-doctorRoutes.get("/", getAllDoctors);
-doctorRoutes.get("/:id", getDoctorById);
 doctorRoutes.post(
   "/auth",
   multerCloudFunction(allowedExtensions.Image).single("image"),
   createDoctor
 );
+doctorRoutes.post("/login", login);
+doctorRoutes.post("/:id/availability", addDoctorAvailbility);
+
+doctorRoutes.get("/", getAllDoctors);
+doctorRoutes.get("/:id", getDoctorById);
+doctorRoutes.get("/appoint", getDoctorsWithAppointments);
+doctorRoutes.get("/:id/availability", getDoctorAvailability);
+
+doctorRoutes.put("/A/:id", updateDoctorAvailableDate);
 doctorRoutes.put(
   "/:id",
   multerCloudFunction(allowedExtensions.Image).single("image"),
   updateDoctor
 );
-doctorRoutes.post("/:id/availablility", addDoctorAvailbility);
-doctorRoutes.put("/A/:id", updateDoctorAvailableDate);
+
 doctorRoutes.delete("/:id", deleteDoctor);
-doctorRoutes.post("/login", login);
-doctorRoutes.get("/appoint", getDoctorsWithAppointments);
+doctorRoutes.delete("/:id/availability", deleteDoctorAvailabilitySlot);
 //======================================================
 export default doctorRoutes;

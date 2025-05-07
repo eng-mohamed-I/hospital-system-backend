@@ -20,7 +20,7 @@ const departmentRoutes = Router();
 departmentRoutes.post("/", createDepartment);
 departmentRoutes.post("/:id/availability", addDepartmentAvailability);
 
-departmentRoutes.get("/availablility/search", SearchDepartmentAvailability);
+departmentRoutes.get("/availability/search", SearchDepartmentAvailability);
 departmentRoutes.get("/search", searchDepartment);
 departmentRoutes.get("/", getAllDepartments);
 departmentRoutes.get("/:id", getDepartmentById);
