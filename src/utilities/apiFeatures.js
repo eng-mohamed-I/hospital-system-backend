@@ -1,13 +1,42 @@
-//?expamle[ gte، gt، lte، lt]=num
-//?sort=exmpale
-//?fields=exmp
-//?page=num&limit=num
-
 class APIFeatures {
   constructor(query, queryString) {
     this.query = query;
     this.queryString = queryString;
-    const length = this.query.length;
+
+    const cleaned = {};
+
+    for (const key in queryString) {
+      const value = queryString[key];
+
+      if (Array.isArray(value)) {
+        cleaned[key] = value;
+      } else if (typeof value === "object" && value !== null) {
+        const nestedCleaned = {};
+        for (const nestedKey in value) {
+          const nestedValue = value[nestedKey];
+
+          if (
+            nestedValue !== "" &&
+            nestedValue !== null &&
+            !isNaN(nestedValue)
+          ) {
+            nestedCleaned[nestedKey] = Number(nestedValue);
+          }
+        }
+        if (Object.keys(nestedCleaned).length > 0) {
+          cleaned[key] = nestedCleaned;
+        }
+      } else if (
+        value !== "" &&
+        value !== null &&
+        value.toString().trim() !== ""
+      ) {
+        cleaned[key] = value;
+      }
+    }
+
+    console.log(cleaned);
+    this.queryString = cleaned;
   }
 
   filter() {
@@ -15,9 +44,17 @@ class APIFeatures {
     const excludedFields = ["page", "sort", "limit", "fields"];
     excludedFields.forEach((el) => delete queryObj[el]);
 
+    for (const key in queryObj) {
+      const value = queryObj[key];
+      if (Array.isArray(value)) {
+        queryObj[key] = { $in: value };
+      }
+    }
+
     let queryStr = JSON.stringify(queryObj);
     queryStr = queryStr.replace(/\b(gt|gte|lt|lte)\b/g, (match) => `$${match}`);
 
+    console.log(queryObj);
     this.query = this.query.find(JSON.parse(queryStr));
     return this;
   }

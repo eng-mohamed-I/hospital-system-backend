@@ -44,10 +44,11 @@ const getAppointmentDetails = async (req, res) => {
 
 const bookAppointment = async (req, res) => {
   try {
-    const { doctor, patient, date, fromTime, toTime, department, price, day } =
+    const { doctor, patient, date, fromTime, toTime, department, day } =
       req.body;
 
     let finalDate = date;
+    let price;
 
     const existingPatient = await patientModel.findById(patient);
     if (!existingPatient) {
@@ -92,6 +93,8 @@ const bookAppointment = async (req, res) => {
           message: "Doctor is not available on this date.",
         });
       }
+
+      price = existingDoctor.price;
     } else {
       const existingDepartment = await departmentModel.findById(department);
       if (!existingDepartment) {
@@ -146,6 +149,8 @@ const bookAppointment = async (req, res) => {
           message: "Department is not available on this day or time.",
         });
       }
+
+      price = existingDepartment.price;
     }
 
     const newAppointment = new appointmentModel({

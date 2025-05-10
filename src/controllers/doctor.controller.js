@@ -1,11 +1,11 @@
+import mongoose from "mongoose";
 import { doctorModel } from "../models/doctor.model.js";
 import { customAlphabet } from "nanoid";
 import cloudinary from "../utilities/cloudinaryConfig.js";
-import jwt from "jsonwebtoken";
 import { departmentModel } from "../models/department.model.js";
-import mongoose from "mongoose";
 import doctorAvailabilityModel from "../models/doctorAvailability.model.js";
 import APIFeatures from "../utilities/apiFeatures.js";
+import jwt from "jsonwebtoken";
 //======================================================
 const nanoid = customAlphabet("123456_=!ascbhdtel", 5);
 
@@ -30,7 +30,7 @@ const getAllDoctors = async (req, res) => {
 
     res.status(200).json({ totalPages, results, data: docs });
   } catch (error) {
-    res.staus(500).json({ message: error.message || "Internal server error" });
+    res.status(500).json({ message: error.message || "Internal server error" });
   }
 };
 
@@ -52,6 +52,7 @@ const searchDoctor = async (req, res) => {
       .json({ message: "Internal server error." || error.message });
   }
 };
+
 const getDoctorById = async (req, res) => {
   try {
     const doctor = await doctorModel
